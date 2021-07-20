@@ -5,6 +5,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 # from rest_framework.decorators import api_view
 
+from rest_framework import status
+
+from profiles_api import serializers
+
+
 class HelloApiView(APIView):
     #Creates a new class based on APIview class
     #Define an application logic for our endpoint we will assign to this view
@@ -13,10 +18,11 @@ class HelloApiView(APIView):
     """Test API view"""
     #APIview expects function for different HTTP requests that can be made
     #to view
-
+    #set serializers
+    serializer_class = serializers.HelloSerializer
     #
     # @api_view(['GET', 'POST'])
-    def get(request, format=None):
+    def get(self,request, format=None):
         """Returns a list of APIView features"""
         an_apiview = [
         'Uses HTTP methods as functions (get, post, patch, put, delete)',
@@ -26,3 +32,34 @@ class HelloApiView(APIView):
         # if request.method == 'POST':
         #     return Response({"message": "Got some data!", "data": request.data})
         return Response({'message': 'Hello!', 'an_apiview': an_apiview})
+
+    def post(self, request):
+
+        """Create hello message with our name"""
+        #Retrieve a serialize and pass in data that was sent in request
+        serializer = self.serializer_class(data=request.data)
+        #validate a serializer
+        #valoidate a name that is no longer than 10 characters
+        if serializer.is_valid():
+            #here retrieve name field from validated data
+            name = serializer.validated_data.get('name')
+            message = f'My name is {name}'
+            surname = serializer.validated_data.get('surname')
+            sur_message = f'My surname is {surname}'
+            return Response({'name':message, 'surname':sur_message})
+        else:
+            return Response(serializer.errors,
+            status = status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None):
+        """Handle updating object"""
+        #here we add API view to just test a browser
+        return Response({'method': 'PUT'})
+
+    def patch(self, request, pk=None):
+        """Handle partial update of object"""
+        return Response({'method':'PATCH'})
+
+    def delete(self, request, pk=None):
+        """Delete an object"""
+        return Response({'method': 'DELETE'})
